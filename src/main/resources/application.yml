@@ -1,0 +1,115 @@
+server:
+  port: 8091
+
+spring:
+  freemarker:
+    cache: false
+  profiles:
+    active: local                           # local(로컬), dev(개발기), prod(운영기)
+  config:
+    import:
+      # - http://localhost:8091/custom.yml  # url 형태
+      - optional:classpath:custom.yml       # optional: 파일이 존재하지 않아도 에러 미발생
+
+  jpa:
+    # database-platform: org.hibernate.dialect.MySQLDialect
+    # database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      format_sql: true
+      ddl-auto: update
+      # none        : 아무 일도 안 일어남 (초기값)
+      # create      : 애플리케이션이 실행될 때만 drop 하고 다시 create 함
+      # update      : 변경된 스키마만 적용
+      # validate    : 변경된 스키마가 있는지 확인만 함, 변경이 있을 시 애플리케이션 종료
+      # create-drop : create 와 비슷하지만 애플리케이션 종료 시에 drop 함
+    generate-ddl: true
+    # defer-datasource-initialization: true
+
+    # @PrePersist, @PreUpdate -> 베스트 프랙티스??
+    # @valid 사용 시 default: false, 미사용 시 default: true
+    # true: JPA 진행 시 validation 에서 필터링
+    # false: DB 에서 필터링(Entity 생성 시 nullable = false 했어도 DB 에서 null 허용했다면 입력 허가됨)
+    properties:
+      hibernate:
+        check_nullability: true
+
+  servlet:
+    multipart:
+      maxFileSize: 100MB
+      maxRequestSize: 100MB
+
+---
+# local
+# TestApiApplication -> Edit Configurations.. -> Environment variables -> User 부분에 추가
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_ID}
+    password: ${LOCAL_DB_PW}
+    #url: jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    #username: root
+    #password: 20230410
+
+---
+# dev
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: 20230410
+
+---
+# prod
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: 20230410
+
+# http://localhost:8091/swagger-ui/index.html
+# openapi-ui: https://springdoc.org/#properties
+# webmvc-ui: https://springdoc.org/v2/#properties
+# webmvc-ui 설정을 맞춰도 설정 적용이 제대로 안되는 것 같아 일단 그대로 놔둠 -> OpenApiConfig.java 는 적용됨
+springdoc:
+  version: '@project.version@'
+  api-docs:
+    path: /api-docs           # default: /v3/api-docs
+    groups:
+      enabled: true
+  default-consumes-media-type: application/json;charset=UTF-8   # request media type
+  default-produces-media-type: application/json;charset=UTF-8   # response media type
+  cache:
+    disabled: true
+  swagger-ui:
+    # alpha(알파벳순), method(http method 순): DELETE → GET → PATCH → POST → PUT
+    path: /            # swagger HTML 경로(default: /swagger-ui.html)
+    disable-swagger-default-url: true           # swagger-ui default url(petstore html) 문서 비활성화 여부
+    # api-docs 및 swagger-ui.configUrl 을 두번씩 호출하는 것을 방지
+    display-query-params-without-oauth2: true   # json 처리된 config 파일 대신 파라미터를 이용하여 swagger-ui에 접근(default: false)
+    doc-expansion: none       # tag 와 operation 을 펼치는 방식(default: list): list, full, none
+  paths-to-match:
+    - /api/**                 # OpenAPI3 로 문서화할 api path 리스트
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
