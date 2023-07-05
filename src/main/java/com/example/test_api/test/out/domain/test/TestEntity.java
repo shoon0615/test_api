@@ -22,7 +22,8 @@ public class TestEntity extends BaseTimeEntity {
     @Column(length = 500, nullable = false)                 // VARCHAR(500) 형식, Not Null
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)    // TEXT 형식(길이 제한 없음)
+    // @Column(columnDefinition = "TEXT", nullable = false)    // TEXT 형식(길이 제한 없음)
+    @Column(nullable = false)
     private String content;
 
     private String author;                                  // @Column 어노테이션 안붙일 경우 default 로 변수명 적용
